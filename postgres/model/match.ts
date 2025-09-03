@@ -1,5 +1,19 @@
-import { db } from '../database';
+import { db } from '../database.ts';
 
 export async function createMatchTable() {
-    await db.query('CREATE TABLE IF NOT EXISTS partidas (id SERIAL PRIMARY KEY,date_match TIMESTAMPTZ NOT NULL,challenger BIGINT NOT NULL REFERENCES player(fighter_id),holder BIGINT NOT NULL REFERENCES player(fighter_id),winner BIGINT NOT NULL REFERENCES player(fighter_id),looser BIGINT NOT NULL REFERENCES player(fighter_id),observation TEXT,status VARCHAR(50) NOT NULL DEFAULT \'Agendada\')');
+    const exists = await db.schema.hasTable('matches');
+    if (!exists){
+        await db.schema.createTable('matches', (table) => {
+            table.increments('id').primary();
+            table.timestamp('date_match').notNullable();
+            table.bigInteger('challenger').notNullable().references('fighter_id').inTable('players');
+            table.bigInteger('holder').notNullable().references('fighter_id').inTable('players');
+            table.bigInteger('winner').references('fighter_id').inTable('players');
+            table.bigInteger('looser').references('fighter_id').inTable('players');
+            table.text('observation');
+            table.string('status', 50).notNullable().defaultTo('Agendada');
+        });
+    }else{
+        console.error("Tabela matches já existe!");
+    }
 }

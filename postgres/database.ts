@@ -1,12 +1,14 @@
-import { Client } from 'pg';
+import knex from 'knex';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Configuração da conexão
-export const db = new Client({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : undefined, // Porta padrão do PostgreSQL
+export const db = knex({
+  client: 'pg',
+  connection: {
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+  },
 });

@@ -1,16 +1,14 @@
-import { db } from './database';
-import { createUserTable } from './model/player';
-import { createTowerTable } from './model/tower';
-import { createMatchTable } from './model/match';
-import { insertPlayers, insertTowers, insertTowerClassification, insertMatches } from './dataInsert';
+import { createPlayerTable } from './model/player.ts';
+import { createTowerTable } from './model/tower.ts';
+import { createMatchTable } from './model/match.ts';
+import { insertPlayers, insertTowers, insertTowerClassification, insertMatches } from './dataInsert.ts';
 
 async function setupDatabase() {
     try {
-        await db.connect();
         console.log('Conectado ao banco de dados.');
 
         // Criar tabelas
-        await createUserTable();
+        await createPlayerTable();
         await createTowerTable();
         await createMatchTable();
 
@@ -24,7 +22,6 @@ async function setupDatabase() {
     } catch (error) {
         console.error('Erro durante o setup do banco de dados:', error);
     } finally {
-        await db.end();
         console.log('Conexão com o banco de dados encerrada.');
     }
 }
