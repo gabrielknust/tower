@@ -15,8 +15,8 @@ export async function createTowerTable() {
     if (!classExists){
         await db.schema.createTable('classification', (table) => {
             table.increments('id').primary();
-            table.bigInteger('player_id').references('fighter_id').inTable('player');
-            table.integer('tower_id').references('id').inTable('tower');
+            table.bigInteger('player_id').references('fighter_id').inTable('player').onDelete('CASCADE');
+            table.integer('tower_id').references('id').inTable('tower').onDelete('CASCADE');
             table.integer('position').notNullable();
             table.unique(['tower_id', 'position']);
             table.unique(['player_id', 'tower_id']);
