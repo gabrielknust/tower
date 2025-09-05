@@ -9,7 +9,7 @@ import { db } from './database.ts';
             { date_match: '2025-08-17', challenger: 2570337658, holder: 2389902601, winner: 2570337658, looser: 2389902601, observation: null, status: 'Concluída' }
         ];
         for (const t of matches) {
-            await db('matches').insert(t).onConflict().ignore();
+            await db('match').insert(t).onConflict().ignore();
         }
     }
 
@@ -35,7 +35,7 @@ import { db } from './database.ts';
         { fighter_id: 3963576032, cfn: 'waddhamner', name: 'Vinicius' }
         ];
         for (const p of players) {
-            await db('players').insert(p).onConflict('fighter_id').ignore();
+            await db('player').insert(p).onConflict('fighter_id').ignore();
         }
     }
 
@@ -45,7 +45,7 @@ import { db } from './database.ts';
             { name: 'Torre Aprendiz'}
         ];
         for (const t of towers) {
-            await db('towers').insert(t).onConflict('name').ignore();
+            await db('tower').insert(t).onConflict('name').ignore();
         }
     }
 
@@ -71,7 +71,7 @@ import { db } from './database.ts';
         { player_id: 3963576032, tower_id: 1, position: 18 }
         ];
         for (const c of classifications) {
-            await db('classifications').insert(c).onConflict().ignore();
+            await db('classification').insert(c).onConflict().ignore();
         }
     }
     

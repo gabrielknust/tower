@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import { Player } from "../model/player";
+import { Player } from "../model/Player";
 import { db } from "../../postgres/database";
 
-async function createPlayer(req: Request, res: Response) {
+export async function createPlayer(req: Request, res: Response) {
+    const trx = await db.transaction();
     try {
-        const { name, fighter_id, cfn } = req.body;
+        const { name, fighter_id, cfn, tower_id } = req.body;
         const player = new Player(fighter_id, cfn, name);
 
-        // Usando Knex para inserir
-        const result = await db('players')
+        const result = await trx('player')
             .insert({
                 name: player.name,
                 fighter_id: player.fighterId,
@@ -16,13 +16,88 @@ async function createPlayer(req: Request, res: Response) {
             })
             .returning(['name', 'fighter_id', 'cfn']);
 
-        res.status(201).json(result[0]);
+        const insertTower = await trx('classification')
+            .insert({
+                player_id: fighter_id,
+                tower_id: tower_id,
+                position: trx.raw('(SELECT COALESCE(MAX(position), 0) + 1 FROM classification WHERE tower_id = ?)', [tower_id])
+            })
+            .returning('*');
+
+        await trx.commit();
+        res.status(201).json({ player: result[0], classification: insertTower[0] });
     } catch (err) {
+        await trx.rollback();
         console.error(err);
-        return res.status(500).json({ error: "Erro ao inserir jogador." });
+        return res.status(500).json({ error: "Erro ao inserir jogador e classificação." });
     }
 }
 
-export const playerController = {
-    createPlayer
-};
+export async function getPlayerById(req: Request, res: Response) {
+    try {
+        const { fighter_id } = req.params;
+        const player = await db('player')
+            .where({ fighter_id: fighter_id })
+            .first();
+        if (player) {
+            return res.status(200).json(player);
+        } else {
+            return res.status(404).json({ error: "Jogador não encontrado." });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Erro ao buscar jogador." });
+    }   
+}
+
+export async function getAllPlayers(req: Request, res: Response) {
+    try {
+        const players = await db('player').select('*');
+        return res.status(200).json(players);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Erro ao buscar jogadores." });
+    }
+}
+
+export async function updatePlayer(req: Request, res: Response) {
+    const { fighter_id } = req.params;
+    const { name, cfn } = req.body;
+    const trx = await db.transaction();
+    try {
+        const updated = await trx('player')
+            .where({ fighter_id: fighter_id })
+            .update({ name, cfn })
+            .returning(['name', 'fighter_id', 'cfn']);
+            
+        await trx.commit();
+        if (updated.length) {
+            return res.status(200).json(updated[0]);
+        } else {
+            return res.status(404).json({ error: "Jogador não encontrado." });
+        }
+    } catch (err) {
+        await trx.rollback();
+        console.error(err);
+        return res.status(500).json({ error: "Erro ao atualizar jogador." });
+    }
+}
+
+export async function deletePlayer(req: Request, res: Response) {
+    const trx = await db.transaction();
+    const { fighter_id } = req.params;
+    try {
+        await trx('classification').where({ player_id: fighter_id }).del();
+        const deleted = await trx('player').where({ fighter_id: fighter_id }).del();
+        await trx.commit();
+        if (deleted) {
+            return res.status(200).json({ message: "Jogador deletado com sucesso." });
+        } else {
+            return res.status(404).json({ error: "Jogador não encontrado." });
+        }
+    } catch (err) {
+        await trx.rollback();
+        console.error(err);
+        return res.status(500).json({ error: "Erro ao deletar jogador." });
+    }
+}

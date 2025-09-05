@@ -1,11 +1,11 @@
-import { Player } from "./player";
-import { Tower } from "./tower";
+import { Player } from "./Player";
+import { Tower } from "./Tower";
 
 export class Classification {
     constructor(
         public id: number,
-        public player: Player,
-        public tower: Tower,
+        public player_id: Player,
+        public tower_id: Tower,
         public position: number
     ) {}
 }
