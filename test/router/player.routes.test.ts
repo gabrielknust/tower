@@ -5,12 +5,11 @@ describe('POST /player', () => {
     afterAll(async () => {
         await db.destroy();
     });
-    //TODO: Criar testes de deletar/atualizar/listar jogador
 
-    it.only('should create a new player', async () => {
+    it('should create a new player', async () => {
         const name = 'player1';
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const tower_id = 2;
         const body = { name, cfn, fighter_id, tower_id };
         try {
@@ -23,54 +22,84 @@ describe('POST /player', () => {
             console.error(error);
         }
         finally {
-            await db('players').where('fighter_id', fighter_id).del();
+            await db('player').where('fighter_id', fighter_id).del();
         }
     });
 
     it('should return 400 if name is missing', async () => {
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const name = "";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const tower_id = 2;
-        const body = { cfn, fighter_id, tower_id };
+        const body = { name, cfn, fighter_id, tower_id };
         const response = await request('http://localhost:8005').post('/player').send(body);
+        const errorMessages = JSON.parse(response.body.errors.message);
         expect(response.status).toBe(400);
-        expect(response.body).toEqual({ error: 'Name is required' });
+        expect(errorMessages).toMatchObject([
+            {
+                code: 'too_small',
+                path: ['name'],
+                message: expect.stringContaining("O campo 'name' é obrigatório."),
+            },
+        ]);
     });
 
     it('should return 400 if cfn is missing', async () => {
         const name = 'player1';
-        const fighter_id = "12355533";
+        const fighter_id = 12355533;
         const tower_id = 2;
         const body = { name, fighter_id, tower_id };
         const response = await request('http://localhost:8005').post('/player').send(body);
+        const errorMessages = JSON.parse(response.body.errors.message);
         expect(response.status).toBe(400);
-        expect(response.body).toEqual({ error: 'CFN is required' });
+        expect(errorMessages).toMatchObject([
+            {
+                code: 'invalid_type',
+                path: ['cfn'],
+                message: expect.stringContaining("Invalid input: expected string, received undefined"),
+            },
+        ]);
     });
 
-    it('should return 400 if fighter_id is missing', async () => {
+    it.only('should return 400 if fighter_id is missing', async () => {
         const name = 'player1';
-        const cfn = "123456";
+        const cfn = "player bobao";
+        const fighter_id = 0;
         const tower_id = 2;
         const body = { name, cfn, tower_id };
         const response = await request('http://localhost:8005').post('/player').send(body);
+        const errorMessages = JSON.parse(response.body.errors.message);
         expect(response.status).toBe(400);
-        expect(response.body).toEqual({ error: 'Fighter ID is required' });
+        expect(errorMessages).toMatchObject([
+            {
+                code: 'invalid_type',
+                path: ['fighter_id'],
+                message: expect.stringContaining("Invalid input: expected string, received undefined"),
+            },
+        ]);
     });
-    
+
     it('should return 400 if tower_id is missing', async () => {
         const name = 'player1';
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const body = { name, cfn, fighter_id };
         const response = await request('http://localhost:8005').post('/player').send(body);
+        const errorMessages = JSON.parse(response.body.errors.message);
         expect(response.status).toBe(400);
-        expect(response.body).toEqual({ error: 'Tower ID is required' });
+        expect(errorMessages).toMatchObject([
+            {
+                code: 'invalid_type',
+                path: ['tower_id'],
+                message: expect.stringContaining("Invalid input: expected string, received undefined"),
+            },
+        ]);
     });
 
     it('should return 409 if fighter_id already exists', async () => {
         const name = 'player1';
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const tower_id = 2;
         const body = { name, cfn, fighter_id, tower_id };
         await db('players').insert({ name, cfn, fighter_id, tower_id });
@@ -82,8 +111,8 @@ describe('POST /player', () => {
 
     it('should return 200 and delete the player', async () => {
         const name = 'player1';
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const tower_id = 2;
         await db('players').insert({ name, cfn, fighter_id, tower_id });
         const response = await request('http://localhost:8005').delete(`/player/${fighter_id}`);
@@ -94,7 +123,7 @@ describe('POST /player', () => {
     });
 
     it('should return 404 if player to delete is not found', async () => {
-        const fighter_id = "nonexistent";
+        const fighter_id = 99999999;
         const response = await request('http://localhost:8005').delete(`/player/${fighter_id}`);
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ error: 'Player not found' });
@@ -102,8 +131,8 @@ describe('POST /player', () => {
 
     it('should return 200 and update the player', async () => {
         const name = 'player1';
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const tower_id = 2;
         await db('players').insert({ name, cfn, fighter_id, tower_id });
         const response = await request('http://localhost:8005').put(`/player/${fighter_id}`).send({ name: 'player1_updated' });
@@ -115,7 +144,7 @@ describe('POST /player', () => {
     });
 
     it('should return 404 if player to update is not found', async () => {
-        const fighter_id = "nonexistent";
+        const fighter_id = 99999999;
         const response = await request('http://localhost:8005').put(`/player/${fighter_id}`).send({ name: 'player1_updated' });
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ error: 'Player not found' });
@@ -134,8 +163,8 @@ describe('POST /player', () => {
 
     it('should return 200 and get player by fighter_id', async () => {
         const name = 'player1';
-        const cfn = "123456";
-        const fighter_id = "12355533";
+        const cfn = "player bobao";
+        const fighter_id = 12355533;
         const tower_id = 2;
         await db('players').insert({ name, cfn, fighter_id, tower_id });
         const response = await request('http://localhost:8005').get(`/player/${fighter_id}`);
@@ -145,7 +174,7 @@ describe('POST /player', () => {
     });
 
     it('should return 404 if player to get is not found', async () => {
-        const fighter_id = "nonexistent";
+        const fighter_id = 99999999;
         const response = await request('http://localhost:8005').get(`/player/${fighter_id}`);
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ error: 'Player not found' });

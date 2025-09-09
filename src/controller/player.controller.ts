@@ -1,20 +1,43 @@
 import { Request, Response } from "express";
 import { Player } from "../model/Player";
 import { db } from "../../postgres/database";
+import * as z from 'zod';
 
 export async function createPlayer(req: Request, res: Response) {
     const trx = await db.transaction();
+    const fighterSchema = z.object({
+        name: z.string("O campo 'name' deve ser uma string.").min(1,"O campo 'name' é obrigatório."),
+        fighter_id: z.number().min(1, { message: "O 'fighter_id' deve ser um número." }),
+        cfn: z.string().min(1, { message: "O campo 'cfn' é obrigatório." }),
+        tower_id: z.number().min(1, { message: "O 'tower_id' deve ser um número." })
+    });
     try {
+        fighterSchema.parse(req.body);
         const { name, fighter_id, cfn, tower_id } = req.body;
         const player = new Player(fighter_id, cfn, name);
+        const existingPlayer = await trx('player')
+            .where({ fighter_id: player.fighterId })
+            .first();
 
-        const result = await trx('player')
-            .insert({
-                name: player.name,
-                fighter_id: player.fighterId,
-                cfn: player.cfn
-            })
-            .returning(['name', 'fighter_id', 'cfn']);
+        let result;
+        if (existingPlayer) {
+            result = await trx('player')
+                .where({ fighter_id: player.fighterId })
+                .update({
+                    name: player.name,
+                    cfn: player.cfn,
+                    deleted_at: null
+                })
+                .returning(['name', 'fighter_id', 'cfn']);
+        } else {
+            result = await trx('player')
+                .insert({
+                    name: player.name,
+                    fighter_id: player.fighterId,
+                    cfn: player.cfn
+                })
+                .returning(['name', 'fighter_id', 'cfn']);
+        }
 
         const insertTower = await trx('classification')
             .insert({
@@ -28,6 +51,9 @@ export async function createPlayer(req: Request, res: Response) {
         res.status(201).json({ player: result[0], classification: insertTower[0] });
     } catch (err) {
         await trx.rollback();
+        if(err instanceof z.ZodError) {
+            return res.status(400).json({ errors: err });
+        }
         console.error(err);
         return res.status(500).json({ error: "Erro ao inserir jogador e classificação." });
     }
@@ -52,7 +78,9 @@ export async function getPlayerById(req: Request, res: Response) {
 
 export async function getAllPlayers(req: Request, res: Response) {
     try {
-        const players = await db('player').select('*');
+        const players = await db('player')
+            .whereNull('deleted_at')
+            .select('*');
         return res.status(200).json(players);
     } catch (err) {
         console.error(err);
@@ -88,7 +116,7 @@ export async function deletePlayer(req: Request, res: Response) {
     const { fighter_id } = req.params;
     try {
         await trx('classification').where({ player_id: fighter_id }).del();
-        const deleted = await trx('player').where({ fighter_id: fighter_id }).del();
+        const deleted = await trx('player').where({ fighter_id: fighter_id }).update({ deleted_at: trx.fn.now() });
         await trx.commit();
         if (deleted) {
             return res.status(200).json({ message: "Jogador deletado com sucesso." });

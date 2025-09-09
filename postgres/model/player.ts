@@ -7,7 +7,7 @@ export async function createPlayerTable() {
             table.bigInteger('fighter_id').primary();
             table.string('cfn', 255).notNullable();
             table.string('name', 255);
-            table.boolean('deleted').notNullable().defaultTo(false);
+            table.timestamp('deleted_at', { useTz: false }).defaultTo(null);
         });
     }else{
         console.error("Tabela players já existe!");
