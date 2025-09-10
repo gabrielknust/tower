@@ -1,6 +1,8 @@
-# My Node.js App
+# Tower
 
-Este projeto é uma aplicação Node.js utilizando TypeScript, Express, Jest, PostgreSQL e dotenv. Abaixo estão as instruções para instalação e uso.
+Uma API REST para gerenciar uma torre de desafios onde jogadores competem para alcançar o topo do ranking. Construído com Node.js, TypeScript e PostgreSQL.
+
+A Torre de Desafios é uma aplicação backend que simula um sistema de ranking competitivo. Quando um novo jogador é registrado, ele entra na última posição da torre. Para subir no ranking, ele deve desafiar e vencer os jogadores que estão imediatamente acima dele. O objetivo final é chegar à primeira posição e se tornar o "Rei da Torre".
 
 ## Pré-requisitos
 
@@ -11,8 +13,8 @@ Este projeto é uma aplicação Node.js utilizando TypeScript, Express, Jest, Po
 
 1. Clone o repositório:
    ```
-   git clone <URL_DO_REPOSITORIO>
-   cd my-nodejs-app
+   git clone https://github.com/gabrielknust/tower
+   cd tower
    ```
 
 2. Instale as dependências:
@@ -20,32 +22,28 @@ Este projeto é uma aplicação Node.js utilizando TypeScript, Express, Jest, Po
    npm install
    ```
 
-3. Crie um arquivo `.env` na raiz do projeto e defina a variável `APP_PORT`:
+3. Crie um arquivo `.env` na raiz do projeto e defina as variaveis: `APP_PORT` (Porta da Aplicação), `DB_NAME` (Nome do Banco de Dados), `DB_USER`(Usuário do Banco de Dados) , `DB_HOST` (Host do Banco de Dados), `DB_PASSWORD` (Senha do Banco de Dados), `DB_PORT` (Porta do Banco de Dados).)
    ```
    APP_PORT=3000
+   DB_NAME=my_database
+   DB_USER=my_user
+   DB_HOST=localhost
+   DB_PASSWORD=my_password 
+   DB_PORT=5432
    ```
-
-## Estrutura do Projeto
-
-```
-my-nodejs-app
-├── src
-│   ├── app.ts          # Configuração da aplicação Express
-│   ├── index.ts        # Ponto de entrada da aplicação
-│   └── routes
-│       └── index.ts    # Definição das rotas da aplicação
-├── .env                # Variáveis de ambiente
-├── .gitignore          # Arquivos e pastas a serem ignorados pelo Git
-├── babel.config.js     # Configuração do Babel
-├── jest.config.js      # Configuração do Jest
-├── package.json        # Configuração do npm
-├── tsconfig.json       # Configuração do TypeScript
-└── README.md           # Documentação do projeto
-```
 
 ## Uso
 
-Para iniciar a aplicação, execute o seguinte comando:
+Para iniciar a aplicação é necessário construir o banco de dados:
+
+```
+node run postgres/setup.ts
+```
+
+Esse comando irá criar toda a estrutura necessária e popular o banco com dados fictícios.
+
+Para iniciar a aplicação, execute:
+
 ```
 npm run dev
 ```
@@ -66,7 +64,3 @@ Para rodar os testes, utilize:
 ```
 npm test
 ```
-
-## Contribuição
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
