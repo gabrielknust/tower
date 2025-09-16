@@ -22,7 +22,7 @@ A Torre de Desafios é uma aplicação backend que simula um sistema de ranking 
    npm install
    ```
 
-3. Crie um arquivo `.env` na raiz do projeto e defina as variaveis: `APP_PORT` (Porta da Aplicação), `DB_NAME` (Nome do Banco de Dados), `DB_USER`(Usuário do Banco de Dados) , `DB_HOST` (Host do Banco de Dados), `DB_PASSWORD` (Senha do Banco de Dados), `DB_PORT` (Porta do Banco de Dados).)
+3. Crie um arquivo `.env` na raiz do projeto e defina as variaveis: `APP_PORT` (Porta da Aplicação), `DB_NAME` (Nome do Banco de Dados), `DB_USER`(Usuário do Banco de Dados) , `DB_HOST` (Host do Banco de Dados), `DB_PASSWORD` (Senha do Banco de Dados), `DB_PORT` (Porta do Banco de Dados).
    ```
    APP_PORT=3000
    DB_NAME=my_database
