@@ -4,12 +4,19 @@ import { db } from "../../postgres/database";
 
 export async function createClassification(req: Request, res: Response) {
     const { player_id, tower_id } = req.body;
-    const classification = new Classification(0, player_id, tower_id, 0);
     try {
+        // Busca a maior posição atual para a torre
+        const maxPositionResult = await db('classification')
+            .where({ tower_id })
+            .max('position as maxPosition')
+            .first();
+        const nextPosition = (maxPositionResult?.maxPosition || 0) + 1;
+
         const result = await db('classification')
             .insert({
-                player_id: classification.player_id,
-                tower_id: classification.tower_id
+                player_id,
+                tower_id,
+                position: nextPosition
             })
             .returning('*');
         res.status(201).json(result[0]);
@@ -34,13 +41,17 @@ export async function getAllClassifications(req: Request, res: Response) {
 
 export async function getClassificationById(req: Request, res: Response) {
     const { id } = req.params;
+    if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ error: "ID inválido." });
+    }
     try {
         const classification = await db('classification')
-            .where({ id: id })
             .join('player', 'classification.player_id', 'player.fighter_id')
             .join('tower', 'classification.tower_id', 'tower.id')
             .select('classification.*', 'player.name as player_name', 'tower.name as tower_name')
+            .where('classification.id', id )
             .first();
+        console.log('Fetched classification:', classification);
         if (classification) {
             return res.status(200).json(classification);
         } else {
@@ -49,7 +60,7 @@ export async function getClassificationById(req: Request, res: Response) {
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: "Erro ao buscar classificação." });
-    }   
+    }
 }
 
 export async function updateClassification(req: Request, res: Response) {
