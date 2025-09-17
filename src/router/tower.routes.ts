@@ -4,9 +4,9 @@ import {createTower,deleteTower,getAllTowers,getTowerById,updateTower} from "../
 const router = Router();
 
 router.post("/", createTower);
-router.get("/:tower_id", getTowerById);
+router.get("/:id", getTowerById);
 router.get("/", getAllTowers);
-router.put("/:tower_id", updateTower);
-router.delete("/:tower_id", deleteTower);
+router.put("/:id", updateTower);
+router.delete("/:id", deleteTower);
 
 export default router;
